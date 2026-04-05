@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 import math
 from matplotlib.colors import ListedColormap
+from matplotlib.widgets import Button
  
 """
 Forest fire on a 100x100 lattice.
@@ -104,22 +105,38 @@ def simulate_forest_fire(size, p, steps):
             new[i, j] = 2  # burning -> burnt
         grid = new
     return grid
- 
-def show_grid(grid, p, steps):
-    cmap = ListedColormap(['#2ecc71', '#e74c3c', '#2d3436'])  # green, red, black
-    plt.figure(figsize=(6,6))
-    plt.imshow(grid, cmap=cmap, vmin=0, vmax=2)
-    plt.title(f'Forest fire at time {steps} (p={p})')
-    plt.axis('off')
-    plt.show()
+
+# Runs simulation and sets new map on plot. Also takes in one variable because the button passes one in.
+def show_map(val):
+    print("Refreshing map")
+    cmap = ListedColormap(['#2ecc71', '#e74c3c', '#2d3436'])
+    grid = simulate_forest_fire_wind(args.size, args.p, args.steps, args.wind_p)
+    grid_ax.imshow(grid, cmap=cmap, vmin=0, vmax=2, origin = "lower")
+    
  
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--size', type=int, default=100)
     parser.add_argument('--p', type=float, default=0.5, help='transmission probability')
     parser.add_argument('--steps', type=int, default=100, help='time steps to simulate')
-    parser.add_argument('--wind_p', type=float, default=0.5, help='percent wind adds or reduces transmission probability')
+    parser.add_argument('--wind_p', type=float, default=0.1, help='percent wind adds or reduces transmission probability')
     args = parser.parse_args()
- 
-    final = simulate_forest_fire_wind(args.size, args.p, args.steps, args.wind_p)
-    show_grid(final, args.p, args.steps)
+
+    # Setup plot
+
+    # Setup two plots so that buttons and grid are seperate
+    fig_ax, grid_ax = plt.subplots()
+    # grid_ax.set_figure(figsize=(6,6))
+
+    grid_ax.set_title(f'Forest fire at time {args.steps} (p={args.p})')
+    grid_ax.axis('off')
+    
+    # Run initial simulation
+    show_map(0)
+    # Set position for button
+    button_axes = fig_ax.add_axes([0.81, 0.000001, 0.1, 0.075])
+
+    bnext = Button(button_axes, 'New',color="gray")
+    bnext.on_clicked(show_map)
+
+    plt.show()
