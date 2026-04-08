@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 import math
+import collections
 from matplotlib.colors import ListedColormap
 from matplotlib.widgets import Button
  
@@ -41,29 +42,15 @@ def simulate_forest_fire_wind(size, p, steps, wind_p):
                     calc_p = p
 
                     if(w_x != 0.0):
-                        if(w_x > 0.0):
-                            if(di == 1):
+                        if(di == 1):
                                 calc_p += w_x
-                            if(di == -1):
+                        if(di == -1):
                                 calc_p -= w_x
-                        else:
-                            if(di == 1):
-                                calc_p += w_x
-                                print(calc_p)
-                            if(di == -1):
-                                calc_p -= w_x
-                                print(calc_p)
 
                     if(w_y != 0.0):
-                        if(w_y > 0.0):
-                            if(dj == 1):
+                        if(dj == 1):
                                 calc_p += w_y
-                            if(dj == -1):
-                                calc_p -= w_y
-                        else:
-                            if(dj == 1):
-                                calc_p += w_y
-                            if(dj == -1):
+                        if(dj == -1):
                                 calc_p -= w_y
 
                     if np.random.rand() < calc_p:
@@ -74,7 +61,7 @@ def simulate_forest_fire_wind(size, p, steps, wind_p):
     return grid
 
 def calc_wind(wind_p, wind, i, j):
-    wind_ref = (0,-1)
+    wind_ref = (0, -1)
     w_x = wind_p * wind_ref[0]
     w_y = wind_p * wind_ref[1]
     return w_x,w_y
@@ -112,7 +99,19 @@ def show_map(val):
     cmap = ListedColormap(['#2ecc71', '#e74c3c', '#2d3436'])
     grid = simulate_forest_fire_wind(args.size, args.p, args.steps, args.wind_p)
     grid_ax.imshow(grid, cmap=cmap, vmin=0, vmax=2, origin = "lower")
-    
+
+def simulate_total(val):
+    print("Simulating 100 times and saving")
+
+    list_total = []
+
+    for i in range(args.steps):
+        grid = simulate_forest_fire_wind(args.size, args.p, args.steps, args.wind_p)
+        list_total.append(len(np.argwhere(grid == 2)))
+
+    np.savetxt("total.csv", list_total, 
+              delimiter = ",")
+
  
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -134,9 +133,13 @@ if __name__ == '__main__':
     # Run initial simulation
     show_map(0)
     # Set position for button
-    button_axes = fig_ax.add_axes([0.81, 0.000001, 0.1, 0.075])
+    bref_axes = fig_ax.add_axes([0.7, 0.05, 0.1, 0.075])
+    bsim_axes = fig_ax.add_axes([0.81, 0.05, 0.1, 0.075])
 
-    bnext = Button(button_axes, 'New',color="gray")
-    bnext.on_clicked(show_map)
+    brefresh = Button(bref_axes, 'New',color="gray")
+    bsim = Button(bsim_axes, 'Sim',color="gray")
+
+    brefresh.on_clicked(show_map)
+    bsim.on_clicked(simulate_total)
 
     plt.show()
