@@ -24,9 +24,15 @@ def simulate_forest_fire_wind(size, p, steps, wind_p):
     grid[center, center] = 1  
     # center burning
 
+    total_burning = []
+
     for _ in range(steps):
         new = grid.copy()
         burning = np.argwhere(grid == 1)
+
+        # Get amount of burning every step
+        total_burning.append(len(burning))
+
         for i, j in burning:
             # reference to the vector of wind at the point
             w_x, w_y = calc_wind(wind_p, wind, i, j)
@@ -46,8 +52,6 @@ def simulate_forest_fire_wind(size, p, steps, wind_p):
                                 calc_p += w_x
                         if(di == -1):
                                 calc_p -= w_x
-
-                    if(w_y != 0.0):
                         if(dj == 1):
                                 calc_p += w_y
                         if(dj == -1):
@@ -58,7 +62,7 @@ def simulate_forest_fire_wind(size, p, steps, wind_p):
                         # if probability less than chance to be set on fire then set to burnt
             new[i, j] = 2  # burning -> burnt
         grid = new
-    return grid
+    return grid, total_burning
 
 def calc_wind(wind_p, wind, i, j):
     wind_ref = (0, -1)
@@ -97,7 +101,7 @@ def simulate_forest_fire(size, p, steps):
 def show_map(val):
     print("Refreshing map")
     cmap = ListedColormap(['#2ecc71', '#e74c3c', '#2d3436'])
-    grid = simulate_forest_fire_wind(args.size, args.p, args.steps, args.wind_p)
+    grid, total_burning = simulate_forest_fire_wind(args.size, args.p, args.steps, args.wind_p)
     grid_ax.imshow(grid, cmap=cmap, vmin=0, vmax=2, origin = "lower")
 
 def simulate_total(val):
@@ -106,10 +110,22 @@ def simulate_total(val):
     list_total = []
 
     for i in range(args.steps):
-        grid = simulate_forest_fire_wind(args.size, args.p, args.steps, args.wind_p)
+        grid, total_burning = simulate_forest_fire_wind(args.size, args.p, args.steps, args.wind_p)
         list_total.append(len(np.argwhere(grid == 2)))
 
     np.savetxt("total.csv", list_total, 
+              delimiter = ",")
+    
+def simulate_total_burning(val):
+    print("Simulating 100 times and saving")
+
+    list_burning = []
+
+    for i in range(100):
+        grid, total_burning = simulate_forest_fire_wind(args.size, args.p, args.steps, args.wind_p)
+        list_burning.append(total_burning)
+
+    np.savetxt(f"total_burning-{args.p}.csv", list_burning, 
               delimiter = ",")
 
  
@@ -133,13 +149,16 @@ if __name__ == '__main__':
     # Run initial simulation
     show_map(0)
     # Set position for button
-    bref_axes = fig_ax.add_axes([0.7, 0.05, 0.1, 0.075])
-    bsim_axes = fig_ax.add_axes([0.81, 0.05, 0.1, 0.075])
+    bref_axes = fig_ax.add_axes([0.6, 0.05, 0.1, 0.075])
+    bsim_axes = fig_ax.add_axes([0.71, 0.05, 0.1, 0.075])
+    bcount_axes = fig_ax.add_axes([0.82, 0.05, 0.1, 0.075])
 
     brefresh = Button(bref_axes, 'New',color="gray")
     bsim = Button(bsim_axes, 'Sim',color="gray")
+    bcount = Button(bcount_axes, 'Count',color="gray")
 
     brefresh.on_clicked(show_map)
     bsim.on_clicked(simulate_total)
+    bcount.on_clicked(simulate_total_burning)
 
     plt.show()
