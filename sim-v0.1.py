@@ -135,10 +135,13 @@ if __name__ == '__main__':
     parser.add_argument('--p', type=float, default=0.5, help='transmission probability')
     parser.add_argument('--steps', type=int, default=100, help='time steps to simulate')
     parser.add_argument('--wind_p', type=float, default=0.1, help='percent wind adds or reduces transmission probability')
+    parser.add_argument('--sim', type=bool, default=False, help='runs the simulation_total_burning on start')
     args = parser.parse_args()
 
-    # Setup plot
+    if(args.sim):
+        simulate_total_burning(0)
 
+    # Setup plot
     # Setup two plots so that buttons and grid are seperate
     fig_ax, grid_ax = plt.subplots()
     # grid_ax.set_figure(figsize=(6,6))
