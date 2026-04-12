@@ -47,7 +47,7 @@ def simulate_forest_fire_wind(size, p, steps, wind_p):
                     # Would be way better to use the cosine of the dot product?
                     calc_p = p
 
-                    if(w_x != 0.0):
+                    if(w_x != 0.0 or w_y != 0.0):
                         if(di == 1):
                                 calc_p += w_x
                         if(di == -1):
@@ -56,6 +56,9 @@ def simulate_forest_fire_wind(size, p, steps, wind_p):
                                 calc_p += w_y
                         if(dj == -1):
                                 calc_p -= w_y
+
+                    if(calc_p != p):
+                        print(calc_p)
 
                     if np.random.rand() < calc_p:
                         new[ni, nj] = 1
@@ -125,7 +128,7 @@ def simulate_total_burning(val):
         grid, total_burning = simulate_forest_fire_wind(args.size, args.p, args.steps, args.wind_p)
         list_burning.append(total_burning)
 
-    np.savetxt(f"total_burning-{args.p}.csv", list_burning, 
+    np.savetxt(f"total_burning-{args.p}-realex.csv", list_burning, 
               delimiter = ",")
 
  
